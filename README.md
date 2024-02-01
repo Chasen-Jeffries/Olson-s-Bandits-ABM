@@ -3,6 +3,8 @@
 ## Overview
 "Dynamics of Olson's Model: An ABM Exploration" is an Agent-Based Model (ABM) simulation implemented in NetLogo. It's designed to simulate Mancur Olson's Roaming vs. Stationary Bandits Theory. The simulation aims to explore the dynamics of the model and see if they align with Olson's theoretical outcomes, focusing on wealth distribution and behavior of bandits under different conditions.
 
+test
+
 ## Features
 - Simulation of roaming (Roam) and stationary (Stat) bandits with distinct behaviors.
 - Dynamic wealth accumulation and taxation system for bandits and patches.

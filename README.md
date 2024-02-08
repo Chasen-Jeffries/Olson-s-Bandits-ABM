@@ -1,7 +1,7 @@
 # **🌐 Dynamics of Olson's Model: An ABM Exploration**
 
 ## **🔍 Overview**
-Explore the intricate dynamics of political and economic behavior with **Dynamics of Olson's Model: An ABM Exploration**. Our simulation, developed in NetLogo, offers an immersive dive into Mancur Olson's Roving vs. Stationary Bandits Theory, providing a unique lens to view wealth distribution and bandit behavior in varying conditions.
+Explore the intricate dynamics of political and economic behavior with **Dynamics of Olson's Model: An ABM Exploration**. Our simulation, developed in NetLogo, offers an immersive dive into Mancur Olson's Roving vs. Stationary Bandits Theory, providing a unique lens to view wealth distribution and bandit behavior in varying conditions. Delivers new perspectives on governance effects on society and the economy.
 
 ## **📚 Olson's Model: Key Theories**
 Olson's theory postulates two types of bandits - roving and stationary. Roving bandits plunder wealth without concern for the long-term consequences, while stationary bandits act with less myopically, balancing their plundering (taxation) with the welfare of the taxed. This model offers a nuanced view of governance, economy, and societal interactions, setting the stage for our simulation.

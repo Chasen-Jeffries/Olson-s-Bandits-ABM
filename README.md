@@ -11,6 +11,16 @@ Our ABM simulation vividly brings to life the behaviors and decisions of both ro
 - **Agents**: Representing roving and stationary bandits, each with unique strategies and impacts on their territories.
 - **Patches**: Simulating territories that bandits interact with, each possessing distinct wealth and growth potential.
 
+### V1:
+
+
+### V2: Aims to better model based on Olsons original article. 
+- **Removes Fighting**: This makes it so instead of making fights occur based on variables, it occurs randomly. 
+- **Patch Investment**: Patch investment rate is now a function of how much patches are taxed minus a base amount. Their investment rate will increase each tick they are not taxed by a certain amount, based on their optimism about the future.
+- **Roam-Stat Bandits**: These bandits, which are roaming bandits that choose to remain stationary in spite of their lack of ability to invest in patch, are now identifiable. 
+- **Movement Updates**: Now prevents roaming bandits from moving onto patches that are stationary as we assume stationary bandits are capable of protecting their lands. 
+- **Updated Decision Making**: Now bandits will not choose between the best two move options and staying on their base patch. Rather they will just choose between the single best location and their current location
+
 ## **🌟 Scenarios**
 ### Baseline Scenario
 A foundational setting where bandits operate under default parameters, establishing a benchmark for behavior and wealth distribution.

@@ -2,7 +2,7 @@
 
 
 globals [
-  wealth
+  death-counter
   Stationary_Wealth_Avg ; average wealth outcome for a group
   Stationary_Wealth_Outcome ; average wealth increase each turn
   Roaming_Wealth_Avg    ; average wealth outcome for roaming bandits
@@ -113,6 +113,7 @@ to setup
 
   set fight-counter 0
   set total-fights 0
+  set death-counter 0
 end
 
 to setup-roaming-bandit                                                                     ;; Setup roaming bandits
@@ -136,6 +137,7 @@ end
 ; Main simulation loop
 to go
   if not any? turtles [stop]
+  if ticks = 200 [stop]
   bandit-action                                               ;; Run the Initial Bandit Action
   patch-action                                                ;; Run the Patch Action
   Outcome                                                     ;; Update Values based on outcomes
@@ -156,13 +158,14 @@ end
 to Roam?
   ask bandits with [color = blue] [
      let target-patches patches in-radius obs-range with [not any? (bandits-here with [color = red])]                                  ;; Create agent-set of patches in local environment
-     set best-dest max-one-of target-patches [Wealth1]                                 ;; ID best-dest as the patch with the highest wealth
-     let best-dest-wealth [wealth1] of best-dest                                     ;;
-     let wealth-here [wealth1] of patch-here                                         ;; Setup wealth-here based on patch value
-     if wealth-here < best-dest-wealth [                                             ;; If here is best option
-        let steps distance best-dest                                                 ;; let the steps the distance from current position to best-dest
-        move-to best-dest                                                            ;; Move to best-destination
-        set wealth wealth - (steps * move-cost)                                      ;; Update Wealth based on move cost and steps
+     set best-dest max-one-of target-patches [Wealth1]                                                                 ;; ID best-dest as the patch with the highest wealth
+     let best-dest-wealth [wealth1] of best-dest                                                                       ;;
+     let wealth-here [wealth1] of patch-here                                                                           ;; Setup wealth-here based on patch value
+     let steps distance best-dest                                                                                      ;; let the steps the distance from current position to best-dest
+     let steps-cost steps * move-cost
+     if wealth-here < (best-dest-wealth - steps-cost) [                                                                ;; If here is best option
+        move-to best-dest                                                                                              ;; Move to best-destination
+        set wealth wealth - steps-cost                                                                                 ;; Update Wealth based on move cost and steps
         set moved? true
       ]
      ]
@@ -214,7 +217,7 @@ to Invest-in-patch
 end
 
 to interest-formula-output
-   if invest-formula = "Simple" [set investment-output (investment * (1 + interest-rate))]                                            ;; Simple Interest Formula
+   if invest-formula = "Simple" [set investment-output (investment * (1 + interest-rate) * bandit-invest-time)]                                            ;; Simple Interest Formula
    if invest-formula = "Compound" [set investment-output (investment * (1 + interest-rate) ^ bandit-invest-time)]                                ;; Compound Interest Formula
    if invest-formula = "Exponential" [set investment-output (investment * e ^ (interest-rate * bandit-invest-time))]                                ;; Exponential
 end
@@ -261,7 +264,7 @@ to patch-investment
 
   set counter0 0
   if invest-formula = "Simple" [
-    set patch-investment-output (patch-investment-amount * (1 + interest-rate))
+    set patch-investment-output (patch-investment-amount * (1 + interest-rate) * patch-invest-time)
     set patch-investment-output abs(random-normal patch-investment-output (sqrt(abs(patch-investment-output))))
   ]                                            ;; Simple Interest Formula
   if invest-formula = "Compound" [
@@ -280,16 +283,22 @@ to outcome
  ask bandits [
     ; let base-attrition sqrt(abs(wealth))
     set wealth (wealth - flat-attrition - (wealth * attrition-rate))                                     ; attrition is a base amount plus some relative amount
+    if wealth <= 0 [
+      set death-counter death-counter + 1
+      die
+    ]
 
-    if wealth <= 0 [die]
     let wealth-scale log wealth 10                                                           ; Creating wealth-scale based on log 10 of wealth
     set size wealth-scale
+
+    ; set a maximum wealth to prevent program from closing
+    if wealth > 100000000 [set wealth 100000000]
+
 
     if color = blue [
       ifelse moved? = True [set moved? False][set time-since-moved time-since-moved + 1]
       if time-since-moved = 5 [set color orange]
     ]
-
   ]
 
   ask patches [
@@ -305,8 +314,8 @@ end
 to Reproduce
   let total-bandits count bandits
   if Reproduce? and total-bandits < 75 [
-    ask bandits with [Wealth > 100][
-     set Wealth Wealth - 100
+    ask bandits with [wealth > 100][
+     set wealth wealth - 100
      if random-float 100 < spawn-rate [
       hatch 1  [
         setxy random-xcor random-ycor]
@@ -336,11 +345,11 @@ end
 to Update-Visuals
  ask turtles[
   ;; Update Stationary Variable Values
-  ifelse any? turtles with [color = red][set Stationary_Wealth_Avg Mean [Wealth] of turtles with [color = red]][set Stationary_Wealth_Avg 0]                                              ;; Calculate the mean wealth for stationary bandits
+  ifelse any? turtles with [color = red][set Stationary_Wealth_Avg Mean [wealth] of turtles with [color = red]][set Stationary_Wealth_Avg 0]                                              ;; Calculate the mean wealth for stationary bandits
   ifelse any? turtles with [color = red][set Stationary_Wealth_Outcome Mean [Investment-output + Taxes] of turtles with [color = red]][set Stationary_Wealth_Outcome 0]                                              ;; Calculate the mean wealth for stationary bandits
 
   ;; Update Roaming Variable Values
-  ifelse any? turtles with [color = blue][set Roaming_Wealth_Avg Mean [Wealth] of turtles with [color = blue]][set Roaming_Wealth_Avg 0]                                              ;; Calculate the mean wealth for stationary bandits
+  ifelse any? turtles with [color = blue][set Roaming_Wealth_Avg Mean [wealth] of turtles with [color = blue]][set Roaming_Wealth_Avg 0]                                              ;; Calculate the mean wealth for stationary bandits
   ifelse any? turtles with [color = blue][set Roaming_Wealth_Outcome Mean [Investment-output + Taxes] of turtles with [color = blue]][set Roaming_Wealth_Outcome 0]                                              ;; Calculate the mean wealth for stationary bandits
 
   ;; Update Roam-stationary Variable Values
@@ -375,8 +384,8 @@ GRAPHICS-WINDOW
 16
 -16
 16
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -441,7 +450,7 @@ Patch-wealth-sd
 Patch-wealth-sd
 0
 50
-5.0
+25.0
 1
 1
 NIL
@@ -456,7 +465,7 @@ patch-wealth-m
 patch-wealth-m
 0
 100
-15.0
+75.0
 1
 1
 NIL
@@ -486,7 +495,7 @@ bandit-wealth-m
 bandit-wealth-m
 0
 100
-100.0
+75.0
 1
 1
 NIL
@@ -546,7 +555,7 @@ bandit-tax-rate-m
 bandit-tax-rate-m
 0
 1
-0.2
+0.6
 0.05
 1
 NIL
@@ -561,7 +570,7 @@ bandit-tax-rate-sd
 bandit-tax-rate-sd
 0
 1
-0.1
+0.2
 0.05
 1
 NIL
@@ -606,7 +615,7 @@ percent-stationary
 percent-stationary
 0
 1
-0.7
+0.5
 0.05
 1
 NIL
@@ -642,17 +651,6 @@ interest-rate
 NIL
 HORIZONTAL
 
-MONITOR
-708
-197
-788
-242
-Pref-best-rate
-((count turtles with [pref-best = True]) / (count turtles))
-2
-1
-11
-
 SLIDER
 6
 698
@@ -662,7 +660,7 @@ bandit-invest-time-m
 bandit-invest-time-m
 0
 25
-5.0
+4.0
 1
 1
 NIL
@@ -716,7 +714,7 @@ Wealth
 0.0
 10.0
 0.0
-10.0
+1000.0
 true
 true
 "" ""
@@ -744,7 +742,7 @@ attrition-rate
 attrition-rate
 0
 1
-0.05
+0.25
 0.01
 1
 NIL
@@ -774,9 +772,9 @@ count turtles with [color = blue]
 
 MONITOR
 709
-60
+14
 780
-105
+59
 Stationary
 count turtles with [color = red]
 17
@@ -819,7 +817,7 @@ SWITCH
 495
 Reproduce?
 Reproduce?
-1
+0
 1
 -1000
 
@@ -832,7 +830,7 @@ spawn-rate
 spawn-rate
 0
 100
-1.0
+5.0
 1
 1
 NIL
@@ -920,7 +918,7 @@ true
 false
 "" "set-plot-y-range 0 5\nset-plot-x-range 0 1\nset-histogram-num-bars 25\n"
 PENS
-"default" 1.0 1 -16777216 true "" "Histogram [tax-rate] of turtles with [color = blue]"
+"default" 1.0 1 -16777216 true "" "Histogram [tax-rate] of turtles with [color = blue or color = orange]"
 
 PLOT
 1280
@@ -1141,17 +1139,6 @@ MONITOR
 Bandit Not Invested
 count turtles with [invest-in-patch? = False]
 0
-1
-11
-
-MONITOR
-651
-197
-708
-242
-Pref-Best
-count turtles with [pref-best = True]
-17
 1
 11
 
@@ -1406,9 +1393,9 @@ Frequency
 10.0
 true
 false
-"" "set-plot-y-range 0 5\nset-plot-x-range 0 100"
+"" "set-plot-y-range 0 5\nset-plot-x-range 0 100\n"
 PENS
-"default" 1.0 1 -16777216 true "" "histogram [wealth] of turtles with [color = blue]"
+"default" 1.0 1 -16777216 true "" "histogram [wealth] of turtles with [color = blue or color = orange]"
 
 MONITOR
 1223
@@ -1964,6 +1951,28 @@ MONITOR
 Min Optimism
 min [optimism] of patches
 4
+1
+11
+
+MONITOR
+708
+60
+780
+105
+Roam-Stat
+count turtles with [color = orange]
+0
+1
+11
+
+MONITOR
+650
+197
+764
+242
+Rov Dead
+death-counter
+1
 1
 11
 

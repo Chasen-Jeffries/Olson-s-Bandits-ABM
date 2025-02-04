@@ -25,9 +25,6 @@ Our ABM simulation vividly brings to life the behaviors and decisions of both ro
 ### Baseline Scenario
 A foundational setting where bandits operate under default parameters, establishing a benchmark for behavior and wealth distribution.
 
-### [Additional Scenarios]
-Detail Specific Scenarios conditions and modifications to explore different 'What If' Scenarios based on Olson's theory.
-
 ## **💡 Analysis**
 Our simulation generates rich data, allowing for a comprehensive analysis of bandit strategies, wealth distribution, and territorial dynamics. It's a powerful tool for understanding the practical ramifications of theoretical models in political economics.
 
